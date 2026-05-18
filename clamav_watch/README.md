@@ -1,45 +1,45 @@
 # clamav-watch
-## Echtzeit-Virenscanner im Userspace
-### Einrichtungshandbuch für Fedora 43
+## Real-Time Virus Scanner in User Space
+### Setup Guide for Fedora 43
 
 ---
 
-## 1. Übersicht
+## 1. Overview
 
-clamav-watch ist ein im Userspace laufender Echtzeit-Virenscanner für Linux. Er nutzt inotify zur Dateiüberwachung, clamd als Scan-Backend und notify-send für Desktop-Benachrichtigungen. Infizierte Dateien werden automatisch in einen Virus-Vault (Quarantäne) verschoben.
+clamav-watch is a real-time virus scanner running entirely in user space on Linux. It uses inotify for file system monitoring, clamd as the scan backend, and notify-send for desktop notifications. Infected files are automatically moved to a virus vault (quarantine).
 
-| Komponente | Aufgabe |
+| Component | Purpose |
 |---|---|
-| `clamd@scan` | ClamAV-Daemon, hält Virendatenbank im RAM |
-| `freshclam` | Aktualisiert die Virendatenbank automatisch |
-| `clamdscan` | Scan-Client, kommuniziert mit clamd über Unix-Socket |
-| `inotifywait` | Überwacht Verzeichnisse auf Dateiänderungen (inotify-tools) |
-| `notify-send` | Zeigt Desktop-Benachrichtigungen (libnotify) |
-| `clamav-watch.sh` | Hauptskript: verbindet alle Komponenten |
-| `clamav-watch.service` | systemd User-Unit, startet das Skript beim Login |
+| `clamd@scan` | ClamAV daemon, keeps virus database loaded in RAM |
+| `freshclam` | Automatically updates the virus database |
+| `clamdscan` | Scan client, communicates with clamd via Unix socket |
+| `inotifywait` | Monitors directories for file changes (inotify-tools) |
+| `notify-send` | Displays desktop notifications (libnotify) |
+| `clamav-watch.sh` | Main script: ties all components together |
+| `clamav-watch.service` | systemd user unit, starts the script at login |
 
 ---
 
-## 2. Voraussetzungen
+## 2. Prerequisites
 
-### 2.1 Pakete installieren
+### 2.1 Install packages
 
 ```bash
 sudo dnf install clamav clamd clamav-update inotify-tools libnotify jq
 ```
 
-### 2.2 SELinux vorbereiten
+### 2.2 Prepare SELinux
 
-Auf Fedora mit aktivem SELinux müssen zwei Booleans gesetzt werden:
+On Fedora with active SELinux, two booleans need to be set:
 
 ```bash
 sudo setsebool -P antivirus_can_scan_system 1
 sudo setsebool -P clamd_use_jit 1
 ```
 
-### 2.3 clamd konfigurieren
+### 2.3 Configure clamd
 
-In `/etc/clamd.d/scan.conf` folgende Zeilen einkommentieren:
+In `/etc/clamd.d/scan.conf`, uncomment the following lines:
 
 ```
 LocalSocket /run/clamd.scan/clamd.sock
@@ -47,42 +47,42 @@ LocalSocketGroup virusgroup
 LocalSocketMode 660
 ```
 
-> **Hinweis:** Das Verzeichnis `/run/clamd.scan/` wird von systemd beim Start automatisch angelegt.
+> **Note:** The directory `/run/clamd.scan/` is created automatically by systemd at startup.
 
-### 2.4 Benutzer zu Gruppen hinzufügen
+### 2.4 Add user to groups
 
-Der ausführende Benutzer muss Mitglied der Gruppe `virusgroup` sein, um auf den clamd-Socket zugreifen zu können:
+The executing user must be a member of the `virusgroup` group to access the clamd socket:
 
 ```bash
 sudo gpasswd -a [USERNAME] virusgroup
 ```
 
-> **Achtung:** Nach der Gruppenänderung ist eine vollständige Abmeldung und erneute Anmeldung erforderlich. Ein einfaches Neuöffnen des Terminals reicht nicht aus.
+> **Warning:** After changing group membership, a full logout and re-login is required. Simply reopening a terminal is not sufficient.
 
-### 2.5 clamd aktivieren
+### 2.5 Enable clamd
 
 ```bash
 sudo systemctl enable --now clamd@scan
 sudo systemctl status clamd@scan
 ```
 
-> **Hinweis:** clamd hält die Virendatenbank dauerhaft im RAM (~1 GB). Dies ist erwartetes Verhalten.
+> **Note:** clamd keeps the virus database permanently loaded in RAM (~1 GB). This is expected behavior.
 
 ---
 
-## 3. Verzeichnisstruktur
+## 3. Directory Structure
 
-clamav-watch wird vollständig unter `~/.local/clamav_watch/` installiert:
+clamav-watch is installed entirely under `~/.local/clamav_watch/`:
 
-| Pfad | Inhalt |
+| Path | Contents |
 |---|---|
-| `~/.local/clamav_watch/bin/` | Hauptskript `clamav-watch.sh` |
+| `~/.local/clamav_watch/bin/` | Main script `clamav-watch.sh` |
 | `~/.local/clamav_watch/etc/` | `config.json`, `clamav-watch.service` |
-| `~/.local/clamav_watch/var/virus_vault/` | Quarantäne-Verzeichnis für infizierte Dateien |
-| `~/.local/clamav_watch/log/` | Tagesweise Logdateien (`clamav-watch-YYYYMMDD.log`) |
-| `~/.local/clamav_watch/usr/share/` | Icons für Desktop-Benachrichtigungen |
+| `~/.local/clamav_watch/var/virus_vault/` | Quarantine directory for infected files |
+| `~/.local/clamav_watch/log/` | Daily log files (`clamav-watch-YYYYMMDD.log`) |
+| `~/.local/clamav_watch/usr/share/` | Icons for desktop notifications |
 
-Verzeichnisse anlegen:
+Create directories:
 
 ```bash
 mkdir -p ~/.local/clamav_watch/{bin,etc,var/virus_vault,log,usr/share}
@@ -90,11 +90,11 @@ mkdir -p ~/.local/clamav_watch/{bin,etc,var/virus_vault,log,usr/share}
 
 ---
 
-## 4. Konfiguration
+## 4. Configuration
 
 ### 4.1 config.json
 
-Die gesamte Konfiguration liegt in `~/.local/clamav_watch/etc/config.json`. Alle Pfade, Scan-Verzeichnisse und Benachrichtigungseinstellungen werden hier definiert:
+All configuration lives in `~/.local/clamav_watch/etc/config.json`. All paths, scan directories, and notification settings are defined here:
 
 ```json
 {
@@ -123,44 +123,44 @@ Die gesamte Konfiguration liegt in `~/.local/clamav_watch/etc/config.json`. Alle
 }
 ```
 
-> **Hinweis:** `[USERNAME]` durch den tatsächlichen Benutzernamen ersetzen (`echo $USER`).
+> **Note:** Replace `[USERNAME]` with the actual username (`echo $USER`).
 
-### 4.2 Konfigurationsparameter
+### 4.2 Configuration parameters
 
-| Parameter | Beschreibung |
+| Parameter | Description |
 |---|---|
-| `scan.dir_watch` | Wurzelverzeichnis das überwacht wird (rekursiv) |
-| `scan.dirs_excluded` | Liste von Verzeichnissen die nicht gescannt werden |
-| `notifications.flag_show_notifications` | `true`/`false` – Desktop-Benachrichtigungen ein/aus |
-| `notifications.icon_virusalert` | Icon-Datei für Virus-Benachrichtigung (in `dir_icons`) |
-| `notifications.notification_duration` | Anzeigedauer der Benachrichtigung in Millisekunden |
+| `scan.dir_watch` | Root directory to monitor (recursive) |
+| `scan.dirs_excluded` | List of directories excluded from scanning |
+| `notifications.flag_show_notifications` | `true`/`false` – enable/disable desktop notifications |
+| `notifications.icon_virusalert` | Icon file for virus notification (located in `dir_icons`) |
+| `notifications.notification_duration` | Notification display duration in milliseconds |
 
 ---
 
 ## 5. Installation
 
-### 5.1 Skript installieren
+### 5.1 Install the script
 
 ```bash
 cp clamav-watch.sh ~/.local/clamav_watch/bin/
 chmod +x ~/.local/clamav_watch/bin/clamav-watch.sh
 ```
 
-### 5.2 Icon installieren
+### 5.2 Install the icon
 
-Eine PNG-Datei für die Virus-Benachrichtigung nach `usr/share/` kopieren:
+Copy a PNG file for the virus notification to `usr/share/`:
 
 ```bash
 cp virusalert.png ~/.local/clamav_watch/usr/share/
 ```
 
-### 5.3 systemd User-Unit installieren
+### 5.3 Install the systemd user unit
 
-Datei: `~/.local/clamav_watch/etc/clamav-watch.service`
+File: `~/.local/clamav_watch/etc/clamav-watch.service`
 
 ```ini
 [Unit]
-Description=ClamAV Echtzeit-Ueberwachung (inotify)
+Description=ClamAV Real-Time Monitoring (inotify)
 Documentation=file:/home/[USERNAME]/.local/clamav_watch/etc/config.json
 After=default.target
 
@@ -176,7 +176,7 @@ StandardError=journal
 WantedBy=default.target
 ```
 
-Unit aktivieren:
+Activate the unit:
 
 ```bash
 mkdir -p ~/.config/systemd/user
@@ -187,75 +187,75 @@ systemctl --user enable --now clamav-watch.service
 
 ---
 
-## 6. Betrieb
+## 6. Operation
 
-### 6.1 Dienst verwalten
+### 6.1 Managing the service
 
-| Aktion | Befehl |
+| Action | Command |
 |---|---|
-| Status prüfen | `systemctl --user status clamav-watch.service` |
-| Starten | `systemctl --user start clamav-watch.service` |
-| Stoppen | `systemctl --user stop clamav-watch.service` |
-| Neu starten | `systemctl --user restart clamav-watch.service` |
-| Autostart deaktivieren | `systemctl --user disable clamav-watch.service` |
+| Check status | `systemctl --user status clamav-watch.service` |
+| Start | `systemctl --user start clamav-watch.service` |
+| Stop | `systemctl --user stop clamav-watch.service` |
+| Restart | `systemctl --user restart clamav-watch.service` |
+| Disable autostart | `systemctl --user disable clamav-watch.service` |
 
 ### 6.2 Logs
 
 ```bash
-# Heutiges Log live verfolgen
+# Follow today's log live
 tail -f ~/.local/clamav_watch/log/clamav-watch-$(date +%Y%m%d).log
 
-# Nur Virusfunde anzeigen
+# Show virus detections only
 grep '\[WARN\]' ~/.local/clamav_watch/log/clamav-watch-*.log
 
-# systemd Journal
+# systemd journal
 journalctl --user -u clamav-watch.service -f
 ```
 
-### 6.3 Quarantäne
+### 6.3 Quarantine
 
-Infizierte Dateien werden mit vorangestelltem Zeitstempel in den Virus-Vault verschoben:
+Infected files are moved to the virus vault with a prepended timestamp:
 
 ```bash
 ls ~/.local/clamav_watch/var/virus_vault/
-# Beispiel: 2026-05-18_12-45-04_infizierte_datei.exe
+# Example: 2026-05-18_12-45-04_infected_file.exe
 ```
 
-> **Achtung:** Dateien im Virus-Vault sind inaktiv aber nicht gelöscht. Regelmäßig prüfen und bei Bedarf manuell entfernen.
+> **Warning:** Files in the virus vault are inactive but not deleted. Check regularly and remove manually as needed.
 
 ---
 
-## 7. Funktionstest mit EICAR-Testdatei
+## 7. Functional Test with EICAR Test File
 
-Die EICAR-Testdatei ist ein harmloser, standardisierter String der von allen gängigen Virenscannern erkannt wird. Er enthält keinen ausführbaren Code.
+The EICAR test file is a harmless, standardized string recognized by all common virus scanners. It contains no executable code.
 
-### 7.1 Testdatei erstellen
+### 7.1 Create the test file
 
 ```bash
 echo 'X5O!P%@AP[4\PZX54(P^)7CC)7}$EICAR-STANDARD-ANTIVIRUS-TEST-FILE!$H+H*' > ~/testfile_eicar
 ```
 
-### 7.2 Erwartetes Ergebnis
+### 7.2 Expected result
 
-Im Log sollte folgende Sequenz erscheinen:
+The log should show the following sequence:
 
 ```
-[INFO] Scanne: /home/[USERNAME]/testfile_eicar
-[WARN] VIRUS GEFUNDEN: /home/[USERNAME]/testfile_eicar
-[INFO] Verschiebe nach: [...]/virus_vault/2026-..._testfile_eicar
-[INFO] Datei erfolgreich in Quarantäne verschoben
+[INFO] Scanning: /home/[USERNAME]/testfile_eicar
+[WARN] VIRUS FOUND: /home/[USERNAME]/testfile_eicar
+[INFO] Moving to: [...]/virus_vault/2026-..._testfile_eicar
+[INFO] File successfully moved to quarantine
 ```
 
-Zusätzlich erscheint eine Desktop-Benachrichtigung mit dem Virus-Alert-Icon.
+A desktop notification with the virus alert icon will also appear.
 
 ---
 
-## 8. Fehlerbehebung
+## 8. Troubleshooting
 
-| Fehler | Lösung |
+| Error | Solution |
 |---|---|
-| `Permission denied` auf `clamd.sock` | Benutzer zur Gruppe `virusgroup` hinzufügen, neu anmelden |
-| clamd startet nicht | `LocalSocket` in `/etc/clamd.d/scan.conf` einkommentieren |
-| `no reply from clamd` | `clamd@scan.service` prüfen: `systemctl status clamd@scan` |
-| Benachrichtigung erscheint nicht | `DISPLAY`-Variable prüfen, `libnotify` installiert? |
+| `Permission denied` on `clamd.sock` | Add user to `virusgroup`, log out and back in |
+| clamd does not start | Uncomment `LocalSocket` in `/etc/clamd.d/scan.conf` |
+| `no reply from clamd` | Check `clamd@scan.service`: `systemctl status clamd@scan` |
+| No desktop notification | Check `DISPLAY` variable, is `libnotify` installed? |
 | `inotify: too many watches` | `echo fs.inotify.max_user_watches=524288 \| sudo tee /etc/sysctl.d/99-inotify.conf` |
