@@ -1,19 +1,24 @@
 #!/bin/bash
+
 ######
 ###### PREACTIONS
 ######
+
 # SELINUX
 # sudo setsebool -P antivirus_can_scan_system 1
 # sudo setsebool -P clamd_use_jit 1
+
 # CLAMAV: /etc/clamd.d/clamd.conf
 # Uncomment #LocalSocket /run/clamd.scan/clamd.sock
 # Uncomment #LocalSocketGroup virusgroup
 # Uncomment #LocalSocketMode 660
 # systemctl enable --now clamd@scan
 # systemctl restart clamd@scan
+
 # Groups
 # Add particular user to group 'virusgroup'
 # e.g. gpasswd -a [USER] virusgroup
+
 ######
 ###### DEF
 ######
@@ -40,7 +45,7 @@ DIR_VAULT=$(jq -r '.app.dir_vault' "$CONFIG_FILE")
 DIR_ICONS=$(jq -r '.app.dir_icons' "$CONFIG_FILE")
 
 # Scan-Konfiguration
-DIR_WATCH=$(jq -r '.scan.dir_watch' "$CONFIG_FILE")
+mapfile -t DIRS_WATCH < <(jq -r '.scan.dirs_watch[]' "$CONFIG_FILE")
 mapfile -t DIRS_EXCLUDED < <(jq -r '.scan.dirs_excluded[]' "$CONFIG_FILE")
 
 # Notifications
@@ -82,7 +87,7 @@ test_if_excluded_dir()
   FILE_2_TEST=$1
   for D in "${DIRS_EXCLUDED[@]}";
   do
-    if [[ "$D" == "$(dirname $FILE_2_TEST)" ]]; then
+    if [[ "$FILE_2_TEST" == "$D"/* ]]; then
       RETVAL=1
       echo $RETVAL
       exit
@@ -122,27 +127,29 @@ main()
   log "INFO" "Ausgeschlossene Verzeichnisse: ${DIRS_EXCLUDED[*]}"
   log "INFO" "Virus-Vault: $DIR_VAULT"
 
-  inotifywait -m -r -e CLOSE_WRITE --format '%w%f' "$DIR_WATCH" | while read FILE
+  inotifywait -m -r -e CLOSE_WRITE --format '%w%f' "${DIRS_WATCH[@]}" | while read FILE
   do
     # Continue only when file locates not in excluded dir
-    if [[ "$(test_if_excluded_dir $FILE)" == "0" ]]; then
-      # Ensure it's a file, not a directory
-      if [ -f "$FILE" ]; then
-        log "INFO" "Scanne: $FILE"
-        # Run clamdscan against the new file
-        if clamdscan --fdpass "$FILE" | grep -q "FOUND"; then
-          TS_FILE=$(date +%Y-%m-%d_%H-%M-%S)
-          log "WARN" "VIRUS GEFUNDEN: $FILE"
-          log "INFO" "Verschiebe nach: ${DIR_VAULT}/${TS_FILE}_$(basename $FILE)"
-          tray_notification "VIRUS ALERT" "${FILE}" "$ICON_VIRUSALERT"
-          mv "$FILE" "${DIR_VAULT}/${TS_FILE}_$(basename $FILE)"
-          log "INFO" "Datei erfolgreich in Quarantäne verschoben"
-        else
-          log "INFO" "Kein Fund: $FILE"
+    if [[ ! "$(dirname ${FILE})" == "${DIR_LOG}"  ]]; then
+      if [[ "$(test_if_excluded_dir $FILE)" == "0" ]]; then
+        # Ensure it's a file, not a directory
+        if [ -f "$FILE" ]; then
+          log "INFO" "Scanne: $FILE"
+          # Run clamdscan against the new file
+          if clamdscan --fdpass "$FILE" | grep -q "FOUND"; then
+            TS_FILE=$(date +%Y-%m-%d_%H-%M-%S)
+            log "WARN" "VIRUS GEFUNDEN: $FILE"
+            log "INFO" "Verschiebe nach: ${DIR_VAULT}/${TS_FILE}_$(basename $FILE)"
+            tray_notification "VIRUS ALERT" "${FILE}" "$ICON_VIRUSALERT"
+            mv "$FILE" "${DIR_VAULT}/${TS_FILE}_$(basename $FILE)"
+            log "INFO" "Datei erfolgreich in Quarantäne verschoben"
+          else
+            log "INFO" "Kein Fund: $FILE"
+          fi
         fi
+      else
+        log "INFO" "Übersprungen (excluded): $FILE"
       fi
-    else
-      log "INFO" "Übersprungen (excluded): $FILE"
     fi
   done
 }
