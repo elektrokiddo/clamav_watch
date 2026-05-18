@@ -1,0 +1,14 @@
+[2026-05-18 12:44:03] [INFO] Übersprungen (excluded): /home/hhepting/testcase/1/wavelink pass
+[2026-05-18 12:44:18] [INFO] Übersprungen (excluded): /home/hhepting/testcase/1/eicar_source
+[2026-05-18 12:44:45] [INFO] Übersprungen (excluded): /home/hhepting/testcase/2/eicar_source
+[2026-05-18 12:44:45] [INFO] Übersprungen (excluded): /home/hhepting/testcase/2/wavelink pass
+[2026-05-18 12:44:51] [INFO] Scanne: /home/hhepting/testcase/3/eicar_source
+[2026-05-18 12:44:51] [WARN] VIRUS GEFUNDEN: /home/hhepting/testcase/3/eicar_source
+[2026-05-18 12:44:51] [INFO] Verschiebe nach: /home/hhepting/.local/clamav_watch/var/virus_vault/2026-05-18_12-44-51_eicar_source
+[2026-05-18 12:44:51] [INFO] Datei erfolgreich in Quarantäne verschoben
+[2026-05-18 12:44:51] [INFO] Scanne: /home/hhepting/testcase/3/wavelink pass
+[2026-05-18 12:44:51] [INFO] Kein Fund: /home/hhepting/testcase/3/wavelink pass
+[2026-05-18 12:45:04] [INFO] Scanne: /home/hhepting/testcase/3/eicar_source
+[2026-05-18 12:45:04] [WARN] VIRUS GEFUNDEN: /home/hhepting/testcase/3/eicar_source
+[2026-05-18 12:45:04] [INFO] Verschiebe nach: /home/hhepting/.local/clamav_watch/var/virus_vault/2026-05-18_12-45-04_eicar_source
+[2026-05-18 12:45:04] [INFO] Datei erfolgreich in Quarantäne verschoben
