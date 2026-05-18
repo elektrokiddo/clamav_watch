@@ -9,7 +9,14 @@
     "dir_icons": "/home/[HOME_DIR]/.local/clamav_watch/usr/share"
   },
   "scan": {
-    "dir_watch": "/home/[HOME_DIR]/testcase",
+    "dirs_watch": [
+      "/home/[HOME_DIR]/Dokumente",
+      "/home/[HOME_DIR]/Downloads",
+      "/home/[HOME_DIR]/Schreibtisch",
+      "/home/[HOME_DIR]/Bilder",
+      "/home/[HOME_DIR]/Videos",
+      "/home/[HOME_DIR]/testcase"
+    ],
     "dirs_excluded": [
       "/home/[HOME_DIR]/testcase/1",
       "/home/[HOME_DIR]/testcase/2"
