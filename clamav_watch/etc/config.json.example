@@ -1,0 +1,23 @@
+{
+  "app": {
+    "dir_app": "/home/[HOME_DIR]/.local/clamav_watch",
+    "dir_etc": "/home/[HOME_DIR]/.local/clamav_watch/etc",
+    "dir_var": "/home/[HOME_DIR]/.local/clamav_watch/var",
+    "dir_usr": "/home/[HOME_DIR]/.local/clamav_watch/usr",
+    "dir_log": "/home/[HOME_DIR]/.local/clamav_watch/log",
+    "dir_vault": "/home/[HOME_DIR]/.local/clamav_watch/var/virus_vault",
+    "dir_icons": "/home/[HOME_DIR]/.local/clamav_watch/usr/share"
+  },
+  "scan": {
+    "dir_watch": "/home/[HOME_DIR]/testcase",
+    "dirs_excluded": [
+      "/home/[HOME_DIR]/testcase/1",
+      "/home/[HOME_DIR]/testcase/2"
+    ]
+  },
+  "notifications": {
+    "flag_show_notifications": true,
+    "icon_virusalert": "virusalert.png",
+    "notification_duration": 10000
+  }
+}
