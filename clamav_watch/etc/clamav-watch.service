@@ -1,11 +1,11 @@
 [Unit]
-Description=ClamAV Echtzeit-Überwachung (inotify)
-Documentation=file:/home/hhepting/.local/clamav_watch/etc/config.json
+Description=ClamAV realtime observer (inotify)
+Documentation=file:/home/[HOME_DIR]/.local/clamav_watch/etc/config.json
 After=default.target
 
 [Service]
 Type=simple
-ExecStart=/bin/bash /home/hhepting/.local/clamav_watch/bin/clamav-watch.sh
+ExecStart=/bin/bash /home/[HOME_DIR]/.local/clamav_watch/bin/clamav-watch.sh
 Restart=on-failure
 RestartSec=5
 
